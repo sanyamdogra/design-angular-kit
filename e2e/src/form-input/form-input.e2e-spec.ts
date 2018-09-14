@@ -1,4 +1,4 @@
-import { browser } from 'protractor';
+import { browser, ElementFinder } from 'protractor';
 import { FormInputPage } from './form-input.po';
 
 describe('Form Input', () => {
@@ -150,6 +150,63 @@ describe('Form Input', () => {
     expect(await page.hasMinlengthError()).toBeFalsy();
     expect(await page.hasMaxlengthError()).toBeTruthy();
     expect(await page.hasPatternError()).toBeTruthy();
+  });
+
+  it('dovrebbe poter sfruttare la validazione model driven', async () => {
+    expect(await page.hasRequiredModelError()).toBeTruthy();
+    expect(await page.hasMinlengthModelError()).toBeFalsy();
+    expect(await page.hasMaxlengthModelError()).toBeFalsy();
+    expect(await page.hasPatternModelError()).toBeFalsy();
+
+    await page.typeInsideModelDrivenValidationFormInput('c');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeTruthy();
+    expect(await page.hasMaxlengthModelError()).toBeFalsy();
+    expect(await page.hasPatternModelError()).toBeTruthy();
+
+    await page.typeInsideModelDrivenValidationFormInput('ab');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeTruthy();
+    expect(await page.hasMaxlengthModelError()).toBeFalsy();
+    expect(await page.hasPatternModelError()).toBeFalsy();
+
+    await page.typeInsideModelDrivenValidationFormInput('aba');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeFalsy();
+    expect(await page.hasMaxlengthModelError()).toBeFalsy();
+    expect(await page.hasPatternModelError()).toBeFalsy();
+
+    await page.typeInsideModelDrivenValidationFormInput('abc');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeFalsy();
+    expect(await page.hasMaxlengthModelError()).toBeFalsy();
+    expect(await page.hasPatternModelError()).toBeTruthy();
+
+    await page.typeInsideModelDrivenValidationFormInput('ababababababa');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeFalsy();
+    expect(await page.hasMaxlengthModelError()).toBeTruthy();
+    expect(await page.hasPatternModelError()).toBeFalsy();
+
+    await page.typeInsideModelDrivenValidationFormInput('ababacbabababa');
+    expect(await page.hasRequiredModelError()).toBeFalsy();
+    expect(await page.hasMinlengthModelError()).toBeFalsy();
+    expect(await page.hasMaxlengthModelError()).toBeTruthy();
+    expect(await page.hasPatternModelError()).toBeTruthy();
+  });
+
+  it('dovrebbe poter sfruttare la modalità autocomplete del tipo search', async () => {
+    await page.clickSearchRadio();
+    await page.typeInsideFormInput('p');
+
+    expect(await page.hasRelatedEntries()).toBeTruthy();
+
+    const relatedEntriesElements: ElementFinder[] = await page.getRelatedEntries();
+    const chosenEntryText = await relatedEntriesElements[0].getText();
+
+    await relatedEntriesElements[0].click();
+
+    expect(await page.getFormInputValue()).toBe(chosenEntryText);
   });
 
 });

@@ -1,3 +1,24 @@
+# [0.13.0](https://github.com/italia/design-angular-kit/compare/v0.12.0...v0.13.0) (2018-09-14)
+
+
+### Features
+
+* **Collapse:** implementa il componente Collapse ([eb63459](https://github.com/italia/design-angular-kit/commit/eb63459)), closes [#19](https://github.com/italia/design-angular-kit/issues/19)
+
+# [0.12.0](https://github.com/italia/design-angular-kit/compare/v0.11.0...v0.12.0) (2018-09-14)
+
+
+### Features
+
+* **Input:** implementa la funziona autocomplete nel component Input ([809f60d](https://github.com/italia/design-angular-kit/commit/809f60d)), closes [#77](https://github.com/italia/design-angular-kit/issues/77)
+
+# [0.11.0](https://github.com/italia/design-angular-kit/compare/v0.10.0...v0.11.0) (2018-09-14)
+
+
+### Features
+
+* **Input:** Implementa validazione Model Driven per il componente Input ([db8a39a](https://github.com/italia/design-angular-kit/commit/db8a39a)), closes [#83](https://github.com/italia/design-angular-kit/issues/83)
+
 # [0.10.0](https://github.com/italia/design-angular-kit/compare/v0.9.0...v0.10.0) (2018-09-12)
 
 
