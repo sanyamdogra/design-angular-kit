@@ -1,4 +1,11 @@
-import { Directive, Output, EventEmitter, HostBinding, Input} from '@angular/core';
+import { Directive, Output, EventEmitter, Input, OnChanges, ElementRef, SimpleChanges, OnInit, Renderer2} from '@angular/core';
+import { AnimationBuilder, style, animate, AnimationPlayer } from '@angular/animations';
+
+const CLASS_ATTRIBUTE = 'class';
+const HIDDEN_STATE = 'collapse';
+const COLLAPSING_STATE = 'collapsing';
+const SHOWN_STATE = `${HIDDEN_STATE} show`;
+const ANIMATION_STYLE = '.35s ease';
 
 /**
  * Per ottimizzare l’ingombro dei contenuti di una pagina si possono usare degli elementi richiudibili
@@ -9,8 +16,9 @@ import { Directive, Output, EventEmitter, HostBinding, Input} from '@angular/cor
   selector: '[it-collapse]',
   exportAs: 'it-collapse'
 })
-export class CollapseDirective {
+export class CollapseDirective implements OnInit, OnChanges {
 
+  private _player: AnimationPlayer;
   private _isDisposed = false;
 
   /**
@@ -54,26 +62,15 @@ export class CollapseDirective {
   set hiddenEvent(value: EventEmitter<CollapseDirective>) { this._hiddenEvent = value; }
   private _hiddenEvent = new EventEmitter<CollapseDirective>();
 
-  @HostBinding('class')
-  get cssClass() {
-    let cssClass = 'collapse';
-    if (this.isShown()) {
-      cssClass += ' show';
-    }
-    return cssClass;
-  }
-
   show() {
     this.showEvent.emit(this);
-    this._isShown = true;
-    this.shownEvent.emit(this);
+    this._animate(true);
   }
 
   hide() {
     this.hideEvent.emit(this);
     if (!this._isDisposed) {
-      this._isShown = false;
-      this.hiddenEvent.emit(this);
+      this._animate(false);
     }
   }
 
@@ -91,5 +88,53 @@ export class CollapseDirective {
 
   isShown() {
     return this._isShown;
+  }
+
+  constructor(private _elementRef: ElementRef, private _animationBuilder: AnimationBuilder, private _renderer: Renderer2) { }
+
+  ngOnInit() {
+    this.ngOnChanges(undefined);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    const state = this._isShown ? SHOWN_STATE : HIDDEN_STATE;
+    this._renderer.setAttribute(this._elementRef.nativeElement, CLASS_ATTRIBUTE, state);
+  }
+
+  private _animate(isOpening: boolean) {
+    const nativeElement = this._elementRef.nativeElement as HTMLDivElement;
+    if (this._player) {
+      this._player.destroy();
+    }
+
+    if (isOpening) {
+      // Usato per permettere l'animazione in apertura senza calcoli aggiuntivi
+      this._renderer.setAttribute(nativeElement, CLASS_ATTRIBUTE, SHOWN_STATE);
+    }
+
+    const metadata = isOpening ? [
+      style({ height: 0, position: 'relative', overflow: 'hidden' }),
+      animate(ANIMATION_STYLE, style({ height: '*' }))
+    ] : [
+      style({ height: '*', position: 'relative', overflow: 'hidden' }),
+      animate(ANIMATION_STYLE, style({ height: 0 }))
+    ];
+
+    const factory = this._animationBuilder.build(metadata);
+    this._player = factory.create(nativeElement);
+    this._player.onStart(() => {
+      this._renderer.setAttribute(nativeElement, CLASS_ATTRIBUTE, COLLAPSING_STATE);
+    });
+    this._player.onDone(() => {
+      this._isShown = isOpening;
+      const state = this._isShown ? SHOWN_STATE : HIDDEN_STATE;
+      this._renderer.setAttribute(nativeElement, CLASS_ATTRIBUTE, state);
+      if (this._isShown) {
+        this.shownEvent.emit(this);
+      } else {
+        this.hiddenEvent.emit(this);
+      }
+    });
+    this._player.play();
   }
 }
